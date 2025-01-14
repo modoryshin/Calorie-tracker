@@ -11,6 +11,7 @@ class UserSchema(BaseModel):
     fats_macros: float
 
 class MealSchema(BaseModel):
+    id: int
     description: str
     calorie_count: int
     carbs_count: float

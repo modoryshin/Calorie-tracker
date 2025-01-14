@@ -1,4 +1,4 @@
-from fastapi import HTTPException, Depends, status, Response, APIRouter, Query
+from fastapi import HTTPException, Depends, status, Response, APIRouter, Query, Request
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated, Optional
@@ -24,7 +24,7 @@ limiter = Limiter(
 #Add a meal
 @router.post("/", status_code=status.HTTP_201_CREATED)
 @limiter.limit("5/second", per_method=True)
-async def add_meal(meal: MealSchema, manager: manager) -> MealSchema:
+async def add_meal(meal: MealSchema, manager: manager, request: Request) -> MealSchema:
     meal = await manager.create_meal(meal)
     return meal
 
@@ -32,26 +32,36 @@ async def add_meal(meal: MealSchema, manager: manager) -> MealSchema:
 #@router.get("/limit-offset", status_code=status.HTTP_200_OK, response_model=LimitOffsetPage[MealSchema])
 @router.get("/", status_code=status.HTTP_200_OK, response_model=Page[MealSchema])
 @limiter.limit("5/second", per_method=True)
-async def get_meal(manager: manager, user_id: int, timestamp: Optional[datetime]=None):
+async def get_meal(manager: manager, user_id: int, request: Request, timestamp: Optional[datetime]=None):
     meals = await manager.fetch_meal(user_id, timestamp)    
     if not meals:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No meals found')
     return meals
 
 #Retrieve a meal by id
-@router.get("/{meal_id}", status_code=status.HTTP_302_FOUND)
+@router.get("/{meal_id}", status_code=status.HTTP_200_OK)
 @limiter.limit("5/second", per_method=True)
-async def get_meal_by_id(manager: manager, meal_id: int) -> MealSchema:
-    pass
+async def get_meal_by_id(manager: manager, meal_id: int, request: Request) -> MealSchema:
+    meal = await manager.fetch_meal_by_id(meal_id)
+    if not meal:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'No meals with ID {meal_id} found')
+    return meal
 
 #Update meal data
-@router.put("/{meal_id}", status_code=status.HTTP_302_FOUND)
+@router.put("/{meal_id}", status_code=status.HTTP_200_OK)
 @limiter.limit("5/second", per_method=True)
-async def update_meal(meal_id: int, meal: MealSchema, manager: manager):
-    pass
+async def update_meal(meal_id: int, meal: MealSchema, manager: manager, request: Request):
+    meal = await manager.update_meal(meal, meal_id)
+    if not meal:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'No meals with ID {meal_id} found')
+    return meal
 
 #Delete meal data
 @router.delete("/{meal_id}", status_code=status.HTTP_200_OK)
 @limiter.limit("5/second", per_method=True)
-async def delete_meal(meal_id: int, manager: manager):
-    pass
+async def delete_meal(meal_id: int, manager: manager, request: Request):
+    result = await manager.delete_meal(meal_id)
+    if result:
+        return {'detail': f"Meal with ID {meal_id} was deleted successfully."}
+    else:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'No meals with ID {meal_id} found')

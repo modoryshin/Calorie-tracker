@@ -1,4 +1,4 @@
-from fastapi import HTTPException, Depends, status, Response, APIRouter
+from fastapi import HTTPException, Depends, status, Response, APIRouter, Request
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated, Optional
@@ -23,7 +23,7 @@ router = APIRouter(prefix='/api/user', tags=['Users'], dependencies=[Depends(get
 #Get user info by id
 @router.get("/{user_id}", status_code=status.HTTP_200_OK)
 @limiter.limit("5/second", per_method=True)
-async def get_user_by_id(manager: user_manager, user_id: int):
+async def get_user_by_id(manager: user_manager, user_id: int, request: Request):
     user = await manager.fetch_user(user_id)
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
@@ -34,7 +34,7 @@ async def get_user_by_id(manager: user_manager, user_id: int):
 #Register a new user macros
 @router.post("/", status_code=status.HTTP_201_CREATED)
 @limiter.limit("5/second", per_method=True)
-async def create_user_macros(user: UserSchema, manager: user_manager) -> UserSchema:
+async def create_user_macros(user: UserSchema, manager: user_manager, request: Request) -> UserSchema:
     new_user = await manager.create_user(user)
     if not new_user:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
@@ -44,7 +44,7 @@ async def create_user_macros(user: UserSchema, manager: user_manager) -> UserSch
 #Update user macros
 @router.put("/{user_id}", status_code=status.HTTP_200_OK)
 @limiter.limit("5/second", per_method=True)
-async def update_user_macros(user_id: int, user: UserSchema, manager: user_manager) -> UserSchema:
+async def update_user_macros(user_id: int, user: UserSchema, manager: user_manager, request: Request) -> UserSchema:
     upd_user = await manager.update_user(user, user_id)
     if not upd_user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
@@ -54,7 +54,7 @@ async def update_user_macros(user_id: int, user: UserSchema, manager: user_manag
 #Delete user data
 @router.delete("/{user_id}", status_code=status.HTTP_200_OK)
 @limiter.limit("5/second", per_method=True)
-async def delete_user_macros(user_id: int, manager: user_manager):
+async def delete_user_macros(user_id: int, manager: user_manager, request: Request):
     is_deleted = await manager.delete_user(user_id)
     if not is_deleted:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,

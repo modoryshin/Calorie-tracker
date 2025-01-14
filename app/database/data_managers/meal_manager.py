@@ -54,6 +54,12 @@ class MealRequestManager():
             return True
         else:
             return False
+    
+    async def fetch_meal_by_id(self, meal_id: int) -> MealSchema | None:
+        meal = await self.session.scalar(select(Meal).where(Meal.id == meal_id))
+        if not meal:
+            return None
+        return MealSchema(meal.id, meal.description, meal.calorie_count, meal.carbs_count, meal.protein_count, meal.fats_count, meal.user_id)
         
 async def get_meal_manager(db: AsyncSession = Depends(get_db)) -> MealRequestManager:
     return MealRequestManager(db)
