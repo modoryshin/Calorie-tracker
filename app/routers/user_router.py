@@ -18,6 +18,7 @@ limiter = Limiter(
 )
 
 user_manager = Annotated[UserRequestManager, Depends(get_user_manager)]
+security = Annotated[str, Depends(get_api_key)]
 router = APIRouter(prefix='/api/user', tags=['Users'], dependencies=[Depends(get_api_key)])
 
 #Get user info by id

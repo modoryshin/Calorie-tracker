@@ -13,7 +13,6 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     telegram_id: Mapped[int] = mapped_column(BigInteger)
-    password: Mapped[str] = mapped_column(String)
     full_name: Mapped[str] = mapped_column(String(30))
     calorie_macros: Mapped[int] = mapped_column(Integer)
     carbs_macros: Mapped[float] = mapped_column(Float)
