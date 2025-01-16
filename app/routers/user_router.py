@@ -6,7 +6,7 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 import os
 
-from app.utils.schemas import UserSchema
+from app.utils.schemas import UserSchema, UserMacrosUpdateSchema
 from app.database.data_managers.user_manager import UserRequestManager, get_user_manager
 from app.database import get_db
 from app.utils.security import get_api_key
@@ -45,7 +45,7 @@ async def create_user_macros(user: UserSchema, manager: user_manager, request: R
 #Update user macros
 @router.put("/{user_id}", status_code=status.HTTP_200_OK)
 @limiter.limit("5/second", per_method=True)
-async def update_user_macros(user_id: int, user: UserSchema, manager: user_manager, request: Request) -> UserSchema:
+async def update_user_macros(user_id: int, user: UserMacrosUpdateSchema, manager: user_manager, request: Request) -> UserMacrosUpdateSchema:
     upd_user = await manager.update_user(user, user_id)
     if not upd_user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,

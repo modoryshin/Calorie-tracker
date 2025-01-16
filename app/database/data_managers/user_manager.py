@@ -5,7 +5,7 @@ from fastapi import Depends
 
 from app.database.models import User
 from app.database import get_db
-from app.utils.schemas import UserSchema
+from app.utils.schemas import UserSchema, UserMacrosUpdateSchema
 
 #Manages crud operations for user object
 class UserRequestManager():
@@ -23,7 +23,7 @@ class UserRequestManager():
             await self.session.commit()
             return user
 
-    async def update_user(self, user: UserSchema, user_id: int) -> UserSchema | None:
+    async def update_user(self, user: UserMacrosUpdateSchema, user_id: int) -> UserMacrosUpdateSchema | None:
         upd_user = await self.session.scalar(select(User).where(User.telegram_id == user_id))
         if not upd_user:
             return None
