@@ -5,25 +5,27 @@ from fastapi import Depends
 
 from app.database.models import User
 from app.database import get_db
-from app.utils.schemas import UserSchema, UserMacrosUpdateSchema
+from app.utils.schemas import UserSchema
 
 #Manages crud operations for user object
 class UserRequestManager():
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def create_user(self, user: UserSchema) -> UserSchema | None:
+    async def create_user(self, user: UserSchema):
+        if not user.full_name or user.full_name == '':
+            return None, 'Creating a new user requires the full name field'
         exists = await self.session.scalar(select(User).where(User.telegram_id == user.telegram_id))
         if exists:
-            return None
+            return None, f'User with ID {user.telegram_id} already exists'
         else:
-            new_user = User(telegram_id=user.telegram_id, full_name=user.full_name, calorie_macros=user.calorie_macros,
+            new_user = User(telegram_id=user.telegram_id, full_name='', calorie_macros=user.calorie_macros,
                             carbs_macros=user.carbs_macros, protein_macros=user.protein_macros, fats_macros=user.fats_macros)
             self.session.add(new_user)
             await self.session.commit()
-            return user
+            return user, 'success'
 
-    async def update_user(self, user: UserMacrosUpdateSchema, user_id: int) -> UserMacrosUpdateSchema | None:
+    async def update_user(self, user: UserSchema, user_id: int) -> UserSchema | None:
         upd_user = await self.session.scalar(select(User).where(User.telegram_id == user_id))
         if not upd_user:
             return None

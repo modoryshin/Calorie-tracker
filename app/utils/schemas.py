@@ -2,23 +2,23 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
 
-class UserSchema(BaseModel):
+""" class UserSchema(BaseModel):
     telegram_id: int
     full_name: str
     calorie_macros: int
     carbs_macros: float
     protein_macros: float
-    fats_macros: float
+    fats_macros: float """
 
-class UserMacrosUpdateSchema(BaseModel):
+class UserSchema(BaseModel):
     telegram_id: int
     calorie_macros: int
     carbs_macros: float
     protein_macros: float
     fats_macros: float
 
-class MealSchemaReturn(BaseModel):
-    id: int
+class MealSchema(BaseModel):
+    id: Optional[int] = None
     description: str
     calorie_count: int
     carbs_count: float
@@ -29,19 +29,5 @@ class MealSchemaReturn(BaseModel):
     class Config:
         orm_mode: True
 
-class MealSchemaInput(BaseModel):
-    description: str
-    calorie_count: int
-    carbs_count: float
-    protein_count: float
-    fats_count: float
-    user_id: int
 
-class MealSchemaInput(BaseModel):
-    description: str
-    calorie_count: int
-    carbs_count: float
-    protein_count: float
-    fats_count: float
-    user_id: int
 

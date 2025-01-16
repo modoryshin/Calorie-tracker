@@ -36,16 +36,16 @@ async def get_user_by_id(manager: user_manager, user_id: int, request: Request):
 @router.post("/", status_code=status.HTTP_201_CREATED)
 @limiter.limit("5/second", per_method=True)
 async def create_user_macros(user: UserSchema, manager: user_manager, request: Request) -> UserSchema:
-    new_user = await manager.create_user(user)
+    new_user, message = await manager.create_user(user)
     if not new_user:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
-                            detail=f'User with ID {user.telegram_id} already exists.')
+                            detail=message)
     return new_user
 
 #Update user macros
 @router.put("/{user_id}", status_code=status.HTTP_200_OK)
 @limiter.limit("5/second", per_method=True)
-async def update_user_macros(user_id: int, user: UserMacrosUpdateSchema, manager: user_manager, request: Request) -> UserMacrosUpdateSchema:
+async def update_user_macros(user_id: int, user: UserSchema, manager: user_manager, request: Request) -> UserSchema:
     upd_user = await manager.update_user(user, user_id)
     if not upd_user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
