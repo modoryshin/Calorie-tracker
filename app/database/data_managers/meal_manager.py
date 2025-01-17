@@ -37,8 +37,8 @@ class MealRequestManager():
         upd_meal.protein_count = meal.protein_count
         upd_meal.fats_count = meal.fats_count
         await self.session.commit()
-        meal.id = meal_id
-        return meal
+        await self.session.refresh(upd_meal)
+        return MealSchema.model_validate(upd_meal)
 
     async def fetch_meal(self, user_id: int, timestamp: Optional[datetime]=None) -> Any:
         if not timestamp:
