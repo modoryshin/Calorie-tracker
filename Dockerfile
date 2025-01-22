@@ -2,8 +2,6 @@ FROM python:3.12.2-slim
 
 WORKDIR /calorie-tracker
 
-RUN mkdir -p /logs
-
 COPY requirements.txt requirements.txt
 
 RUN pip install -r requirements.txt
