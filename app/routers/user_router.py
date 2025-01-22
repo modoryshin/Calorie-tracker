@@ -5,6 +5,8 @@ from typing import Annotated, Optional
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 import os
+from datetime import datetime
+import dateparser
 
 from app.utils.schemas import UserSchema, MacrosSchema
 from app.database.data_managers.user_manager import UserRequestManager, get_user_manager
@@ -31,6 +33,15 @@ async def get_user_by_id(manager: user_manager, user_id: int, request: Request):
                             detail=f'No user with {user_id} ID.')
     else:
         return user
+    
+@router.get("/{user_id}/status", status_code=status.HTTP_200_OK)
+@limiter.limit("5/second", per_method=True)
+async def get_user_status(user_id: int, timestamp: str, manager: user_manager, request: Request) -> MacrosSchema:
+    date = dateparser.parse(timestamp)
+    user_status: MacrosSchema = await manager.get_user_status(user_id, date)
+    if not user_status:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'User with ID {user_id} does not exist')
+    return user_status
 
 #Register a new user macros
 @router.post("/", status_code=status.HTTP_201_CREATED)

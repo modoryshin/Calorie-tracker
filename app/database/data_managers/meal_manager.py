@@ -1,4 +1,4 @@
-from sqlalchemy import select, desc
+from sqlalchemy import select, desc, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi_pagination.ext.sqlalchemy import paginate
 from typing import Optional, List, Any
@@ -41,14 +41,16 @@ class MealRequestManager():
         return MealSchema.model_validate(upd_meal)
 
     async def fetch_meal(self, user_id: int, timestamp: Optional[datetime]=None) -> Any:
-        if not timestamp:
+        if timestamp == None:
             meals = await paginate(self.session,
                                select(Meal).where(Meal.user_id == user_id).order_by(
                                    Meal.timestamp.desc()))
         else:
+            tstmp_low = timestamp
+            tstmp_high = timestamp.replace(hour=23, minute=59, second=59)
+            print(f'{tstmp_low} {tstmp_high}')
             meals = await paginate(self.session,
-                               select(Meal).where(Meal.user_id == user_id
-                                                   and Meal.timestamp == timestamp).order_by(
+                               select(Meal).where(Meal.user_id == user_id).where(and_(Meal.timestamp >= tstmp_low, Meal.timestamp <= tstmp_high)).order_by(
                                    Meal.timestamp.desc()))
         return meals
 

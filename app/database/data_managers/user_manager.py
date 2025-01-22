@@ -1,11 +1,12 @@
-from sqlalchemy import select
+from sqlalchemy import select, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional, List
 from fastapi import Depends
+from datetime import datetime
 
-from app.database.models import User
+from app.database.models import User, Meal
 from app.database import get_db
-from app.utils.schemas import UserSchema, MacrosSchema
+from app.utils.schemas import UserSchema, MacrosSchema, MealSchema
 
 #Manages crud operations for user object
 class UserRequestManager():
@@ -60,6 +61,24 @@ class UserRequestManager():
             return True
         else:
             return False
-        
+    
+    async def get_user_status(self, user_id: int, timestamp: datetime) -> MacrosSchema:
+        tstmp_low = timestamp
+        tstmp_high = timestamp.replace(hour=23, minute=59, second=59)
+        result = await self.session.scalars(select(Meal).where(Meal.user_id == user_id and (
+            Meal.timestamp >= tstmp_low and Meal.timestamp <= tstmp_high)).order_by(Meal.timestamp.desc()))
+        meals: List[MealSchema] = result.all()
+        result = await self.session.scalar(select(User).where(User.telegram_id == user_id))
+        user_macros: MacrosSchema = MacrosSchema(**result.__dict__)
+        if not user_macros:
+            return None
+
+        for meal in meals:
+            user_macros.calorie_macros -= meal.calorie_count
+            user_macros.carbs_macros -= meal.carbs_count
+            user_macros.protein_macros -= meal.protein_count
+            user_macros.fats_macros -= meal.fats_count
+        return user_macros
+
 async def get_user_manager(db: AsyncSession = Depends(get_db)) -> UserRequestManager:
     return UserRequestManager(db)

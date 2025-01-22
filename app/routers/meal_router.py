@@ -7,6 +7,7 @@ from fastapi_pagination import Page, LimitOffsetPage
 from datetime import datetime
 from slowapi import Limiter
 from slowapi.util import get_remote_address
+import dateparser
 
 from app.utils.security import get_api_key
 from app.utils.schemas import MealSchema
@@ -33,8 +34,12 @@ async def add_meal(meal: MealSchema, manager: manager, request: Request) -> Meal
 #Retrieve a set number of meals (limited)
 @router.get("/", status_code=status.HTTP_200_OK, response_model=Page[MealSchema])
 @limiter.limit("5/second", per_method=True)
-async def get_meal(manager: manager, user_id: int, request: Request, timestamp: Optional[datetime]=None):
-    meals = await manager.fetch_meal(user_id, timestamp)    
+async def get_meal(manager: manager, user_id: int, request: Request, timestamp: Optional[str]=None):
+    date = None
+    if timestamp:
+        date = dateparser.parse(date_string=timestamp)
+        print(date)
+    meals = await manager.fetch_meal(user_id, date)    
     if not meals:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='No meals found')
     return meals
