@@ -2,12 +2,14 @@ FROM python:3.12.2-slim
 
 WORKDIR /calorie-tracker
 
-COPY requirements.txt requirements.txt
+COPY requirements.txt /calorie-tracker/requirements.txt
 
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir --upgrade -r /calorie-tracker/requirements.txt
 
-COPY . .
+COPY app /calorie-tracker/app
 
-EXPOSE 8000
+COPY main.py /calorie-tracker/main.py
 
-CMD uvicorn main:app --host=0.0.0.0
+EXPOSE 80
+
+CMD ["fastapi", "run" , "main.py", "--port", "80"]
