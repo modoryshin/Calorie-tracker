@@ -5,3 +5,4 @@
 **tests/
 *.gitignore
 *.gits
+*.env

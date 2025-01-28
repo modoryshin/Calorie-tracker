@@ -4,3 +4,4 @@
 **tests/
 *.sqlite
 *.log
+*.env
